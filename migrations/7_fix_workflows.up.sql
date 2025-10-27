@@ -1,7 +1,28 @@
--- Migration 7: Fix workflow tables conflict
--- This migration handles the case where workflow tables might already exist
+-- Migration 7: Fix workflow tables and ensure dependencies exist
+-- This migration handles missing dependencies and workflow tables
 
--- First, drop existing tables if they exist (CASCADE will handle foreign key dependencies)
+-- First, ensure users table exists (create if not exists)
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  name TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Ensure contacts table exists (create if not exists)
+CREATE TABLE IF NOT EXISTS contacts (
+  id BIGSERIAL PRIMARY KEY,
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+  email TEXT,
+  name TEXT,
+  phone TEXT,
+  company TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Drop existing workflow tables if they exist (CASCADE will handle foreign key dependencies)
 DROP TABLE IF EXISTS workflow_executions CASCADE;
 DROP TABLE IF EXISTS workflows CASCADE;
 
